@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -28,3 +30,36 @@ class EntityWithConnections(BaseModel):
     entity: EntityResponse
     connections: list[ConnectionResponse]
     connected_entities: list[EntityResponse]
+
+
+class ExposureFactor(BaseModel):
+    name: str
+    value: float
+    percentile: float
+    weight: float
+    sources: list[str]
+
+
+class ExposureResponse(BaseModel):
+    entity_id: str
+    exposure_index: float
+    factors: list[ExposureFactor]
+    peer_group: str
+    peer_count: int
+    sources: list[SourceAttribution]
+
+
+class TimelineEvent(BaseModel):
+    id: str
+    date: str
+    label: str
+    entity_type: str
+    properties: dict[str, Any]
+    sources: list[SourceAttribution]
+
+
+class TimelineResponse(BaseModel):
+    entity_id: str
+    events: list[TimelineEvent]
+    total: int
+    next_cursor: str | None

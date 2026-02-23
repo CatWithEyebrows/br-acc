@@ -21,11 +21,12 @@ from icarus.services import investigation_service as svc
 from icarus.services.neo4j_service import execute_query_single
 from icarus.services.pdf_service import render_investigation_pdf
 
-router = APIRouter(tags=["investigations"])
+router = APIRouter(prefix="/api/v1/investigations", tags=["investigations"])
+shared_router = APIRouter(tags=["shared"])
 
 
 @router.post(
-    "/api/v1/investigations/",
+    "/",
     response_model=InvestigationResponse,
     status_code=201,
 )
@@ -37,7 +38,7 @@ async def create_investigation(
     return await svc.create_investigation(session, body.title, body.description, user.id)
 
 
-@router.get("/api/v1/investigations/", response_model=InvestigationListResponse)
+@router.get("/", response_model=InvestigationListResponse)
 async def list_investigations(
     session: Annotated[AsyncSession, Depends(get_session)],
     user: CurrentUser,
@@ -49,7 +50,7 @@ async def list_investigations(
 
 
 @router.get(
-    "/api/v1/investigations/{investigation_id}",
+    "/{investigation_id}",
     response_model=InvestigationResponse,
 )
 async def get_investigation(
@@ -64,7 +65,7 @@ async def get_investigation(
 
 
 @router.patch(
-    "/api/v1/investigations/{investigation_id}",
+    "/{investigation_id}",
     response_model=InvestigationResponse,
 )
 async def update_investigation(
@@ -82,7 +83,7 @@ async def update_investigation(
 
 
 @router.delete(
-    "/api/v1/investigations/{investigation_id}",
+    "/{investigation_id}",
     status_code=204,
 )
 async def delete_investigation(
@@ -96,7 +97,7 @@ async def delete_investigation(
 
 
 @router.post(
-    "/api/v1/investigations/{investigation_id}/entities/{entity_id}",
+    "/{investigation_id}/entities/{entity_id}",
     status_code=201,
 )
 async def add_entity(
@@ -114,7 +115,7 @@ async def add_entity(
 
 
 @router.post(
-    "/api/v1/investigations/{investigation_id}/annotations",
+    "/{investigation_id}/annotations",
     response_model=Annotation,
     status_code=201,
 )
@@ -130,7 +131,7 @@ async def create_annotation(
 
 
 @router.get(
-    "/api/v1/investigations/{investigation_id}/annotations",
+    "/{investigation_id}/annotations",
     response_model=list[Annotation],
 )
 async def list_annotations(
@@ -142,7 +143,7 @@ async def list_annotations(
 
 
 @router.post(
-    "/api/v1/investigations/{investigation_id}/tags",
+    "/{investigation_id}/tags",
     response_model=Tag,
     status_code=201,
 )
@@ -156,7 +157,7 @@ async def create_tag(
 
 
 @router.get(
-    "/api/v1/investigations/{investigation_id}/tags",
+    "/{investigation_id}/tags",
     response_model=list[Tag],
 )
 async def list_tags(
@@ -168,7 +169,7 @@ async def list_tags(
 
 
 @router.delete(
-    "/api/v1/investigations/{investigation_id}/entities/{entity_id}",
+    "/{investigation_id}/entities/{entity_id}",
     status_code=204,
 )
 async def remove_entity(
@@ -185,7 +186,7 @@ async def remove_entity(
 
 
 @router.delete(
-    "/api/v1/investigations/{investigation_id}/annotations/{annotation_id}",
+    "/{investigation_id}/annotations/{annotation_id}",
     status_code=204,
 )
 async def delete_annotation(
@@ -200,7 +201,7 @@ async def delete_annotation(
 
 
 @router.delete(
-    "/api/v1/investigations/{investigation_id}/tags/{tag_id}",
+    "/{investigation_id}/tags/{tag_id}",
     status_code=204,
 )
 async def delete_tag(
@@ -215,7 +216,7 @@ async def delete_tag(
 
 
 @router.post(
-    "/api/v1/investigations/{investigation_id}/share",
+    "/{investigation_id}/share",
     response_model=dict[str, str],
 )
 async def generate_share_link(
@@ -229,7 +230,7 @@ async def generate_share_link(
     return {"share_token": token}
 
 
-@router.get("/api/v1/shared/{token}", response_model=InvestigationResponse)
+@shared_router.get("/api/v1/shared/{token}", response_model=InvestigationResponse)
 async def get_shared_investigation(
     token: str,
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -240,7 +241,7 @@ async def get_shared_investigation(
     return result
 
 
-@router.get("/api/v1/investigations/{investigation_id}/export")
+@router.get("/{investigation_id}/export")
 async def export_investigation(
     investigation_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -261,7 +262,7 @@ async def export_investigation(
     return JSONResponse(content=export_data)
 
 
-@router.get("/api/v1/investigations/{investigation_id}/export/pdf")
+@router.get("/{investigation_id}/export/pdf")
 async def export_investigation_pdf(
     investigation_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],

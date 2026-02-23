@@ -63,6 +63,12 @@ CREATE INDEX contract_contracting_org IF NOT EXISTS
 CREATE INDEX contract_date IF NOT EXISTS
   FOR (c:Contract) ON (c.date);
 
+CREATE INDEX sanction_date_start IF NOT EXISTS
+  FOR (s:Sanction) ON (s.date_start);
+
+CREATE INDEX amendment_date IF NOT EXISTS
+  FOR (a:Amendment) ON (a.date);
+
 // -- Fulltext Search Index --
 CREATE FULLTEXT INDEX entity_search IF NOT EXISTS
   FOR (n:Person|Company)

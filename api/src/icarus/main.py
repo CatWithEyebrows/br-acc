@@ -46,6 +46,7 @@ app = FastAPI(
     description="Brazilian public data graph analysis tool",
     version="0.1.0",
     lifespan=lifespan,
+    redirect_slashes=False,
 )
 
 app.state.limiter = limiter
@@ -68,6 +69,7 @@ app.include_router(graph.router)
 app.include_router(patterns.router)
 app.include_router(baseline.router)
 app.include_router(investigation.router)
+app.include_router(investigation.shared_router)
 
 
 @app.get("/health")

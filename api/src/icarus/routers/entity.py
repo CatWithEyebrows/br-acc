@@ -10,9 +10,13 @@ from icarus.models.entity import (
     ConnectionResponse,
     EntityResponse,
     EntityWithConnections,
+    ExposureResponse,
     SourceAttribution,
+    TimelineEvent,
+    TimelineResponse,
 )
 from icarus.services.neo4j_service import execute_query, execute_query_single
+from icarus.services.score_service import compute_exposure
 
 router = APIRouter(prefix="/api/v1/entity", tags=["entity"])
 
@@ -101,6 +105,55 @@ async def get_entity_by_element_id(
 
     return _node_to_entity(
         record["e"], record["entity_labels"], element_id
+    )
+
+
+@router.get("/{entity_id}/exposure", response_model=ExposureResponse)
+async def get_entity_exposure(
+    entity_id: str,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> ExposureResponse:
+    return await compute_exposure(session, entity_id)
+
+
+@router.get("/{entity_id}/timeline", response_model=TimelineResponse)
+async def get_entity_timeline(
+    entity_id: str,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    cursor: Annotated[str | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+) -> TimelineResponse:
+    records = await execute_query(
+        session,
+        "entity_timeline",
+        {"entity_id": entity_id, "cursor": cursor, "limit": limit},
+    )
+
+    events: list[TimelineEvent] = []
+    for record in records:
+        lbls: list[str] = record["lbls"]
+        entity_type = lbls[0] if lbls else "unknown"
+        props: dict[str, Any] = dict(record["props"])
+        event_date: str = record["event_date"]
+
+        label = props.get("object", props.get("type", entity_type))
+
+        events.append(TimelineEvent(
+            id=record["id"],
+            date=event_date,
+            label=str(label),
+            entity_type=entity_type,
+            properties=props,
+            sources=[SourceAttribution(database="neo4j_graph")],
+        ))
+
+    next_cursor = events[-1].date if len(events) == limit else None
+
+    return TimelineResponse(
+        entity_id=entity_id,
+        events=events,
+        total=len(events),
+        next_cursor=next_cursor,
     )
 
 
