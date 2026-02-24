@@ -53,7 +53,7 @@ export function EntityDetail({ entityId, onClose }: EntityDetailProps) {
             {t(`entity.${entity.type}`, entity.type)}
           </div>
           <h3 className={styles.name}>
-            {String(entity.properties.name || entity.properties.razao_social || entity.properties.nome || "N/A")}
+            {String(entity.properties.name ?? entity.properties.razao_social ?? entity.properties.nome ?? "N/A")}
           </h3>
 
           {(entity.properties.cpf || entity.properties.cnpj) && (

@@ -53,6 +53,27 @@ async def execute_query_single(
     return await result.single()
 
 
+def sanitize_props(
+    props: dict[str, Any],
+) -> dict[str, str | float | int | bool | None]:
+    """Flatten Neo4j node/rel properties to JSON-safe scalar values.
+
+    Neo4j can return lists, dicts, and temporal types in node properties.
+    This converts them to strings so the API contract
+    (dict[str, str | float | int | bool | None]) is honoured.
+    """
+    clean: dict[str, str | float | int | bool | None] = {}
+    for k, v in props.items():
+        if v is None or isinstance(v, (str, int, float, bool)):
+            clean[k] = v
+        elif isinstance(v, list):
+            clean[k] = ", ".join(str(item) for item in v)
+        else:
+            # Neo4j Date, DateTime, Duration, dict, etc.
+            clean[k] = str(v)
+    return clean
+
+
 async def ensure_schema(driver: AsyncDriver) -> None:
     """Run schema_init.cypher statements on startup. All use IF NOT EXISTS so idempotent."""
     raw = CypherLoader.load("schema_init")

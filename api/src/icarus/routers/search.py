@@ -8,7 +8,7 @@ from icarus.dependencies import get_session
 from icarus.middleware.rate_limit import limiter
 from icarus.models.entity import SourceAttribution
 from icarus.models.search import SearchResponse, SearchResult
-from icarus.services.neo4j_service import execute_query
+from icarus.services.neo4j_service import execute_query, sanitize_props
 
 router = APIRouter(prefix="/api/v1", tags=["search"])
 
@@ -67,7 +67,7 @@ async def search_entities(
             name=_extract_name(node, labels),
             score=record["score"],
             document=document,
-            properties=props,
+            properties=sanitize_props(props),
             sources=sources,
         ))
 

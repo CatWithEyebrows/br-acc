@@ -15,7 +15,7 @@ from icarus.models.entity import (
     TimelineEvent,
     TimelineResponse,
 )
-from icarus.services.neo4j_service import execute_query, execute_query_single
+from icarus.services.neo4j_service import execute_query, execute_query_single, sanitize_props
 from icarus.services.score_service import compute_exposure
 
 router = APIRouter(prefix="/api/v1/entity", tags=["entity"])
@@ -48,7 +48,7 @@ def _node_to_entity(
     return EntityResponse(
         id=entity_id,
         type=entity_type,
-        properties=props,
+        properties=sanitize_props(props),
         sources=sources,
         is_pep=_is_pep(props),
     )
@@ -143,7 +143,7 @@ async def get_entity_timeline(
             date=event_date,
             label=str(label),
             entity_type=entity_type,
-            properties=props,
+            properties=sanitize_props(props),
             sources=[SourceAttribution(database="neo4j_graph")],
         ))
 
@@ -202,7 +202,7 @@ async def get_connections(
             source_id=record["source_id"],
             target_id=record["target_id"],
             relationship_type=record["rel_type"],
-            properties=rel_props,
+            properties=sanitize_props(rel_props),
             confidence=confidence,
             sources=rel_sources,
         ))

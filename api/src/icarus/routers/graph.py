@@ -8,7 +8,7 @@ from icarus.constants import PEP_ROLES
 from icarus.dependencies import get_session
 from icarus.models.entity import SourceAttribution
 from icarus.models.graph import GraphEdge, GraphNode, GraphResponse
-from icarus.services.neo4j_service import execute_query
+from icarus.services.neo4j_service import execute_query, sanitize_props
 
 logger = logging.getLogger(__name__)
 
@@ -58,9 +58,9 @@ def _extract_label(node: Any, labels: list[str]) -> str:
     return str(props.get("name", str(props.get("id", ""))))
 
 
-def _slim_props(node_props: dict[str, Any]) -> dict[str, Any]:
-    """Return only essential properties for graph rendering."""
-    return {k: v for k, v in node_props.items() if k in _GRAPH_PROPS}
+def _slim_props(node_props: dict[str, Any]) -> dict[str, str | float | int | bool | None]:
+    """Return only essential properties for graph rendering, with scalar values."""
+    return sanitize_props({k: v for k, v in node_props.items() if k in _GRAPH_PROPS})
 
 
 def _build_label_filter(type_list: list[str] | None) -> str:
@@ -199,7 +199,7 @@ async def get_graph(
             source=source_id,
             target=target_id,
             type=rel.type,
-            properties=rel_props,
+            properties=sanitize_props(rel_props),
             confidence=confidence,
             sources=rel_sources,
         ))

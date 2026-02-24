@@ -35,16 +35,17 @@ CONTRATO_COLS = {
     "Data Assinatura Contrato": "data_inicio",
 }
 
-# Servidores: two files joined on ID_SERVIDOR_PORTAL
+# Servidores: two files joined on Id_SERVIDOR_PORTAL
+# Real SIAPE column names (quotes stripped by pandas)
 SERVIDOR_CADASTRO_COLS = {
-    "ID_SERVIDOR_PORTAL": "_join_id",
+    "Id_SERVIDOR_PORTAL": "_join_id",
     "CPF": "cpf",
     "NOME": "nome",
     "ORG_EXERCICIO": "orgao",
 }
 
 SERVIDOR_REMUNERACAO_COLS = {
-    "Id Portal": "_join_id",
+    "Id_SERVIDOR_PORTAL": "_join_id",
     "REMUNERAÇÃO BÁSICA BRUTA (R$)": "remuneracao",
 }
 
