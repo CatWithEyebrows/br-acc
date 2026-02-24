@@ -33,8 +33,12 @@ class Neo4jBatchLoader:
         key_field: str,
     ) -> int:
         rows = [r for r in rows if r.get(key_field)]
+        all_keys: set[str] = set()
+        for r in rows:
+            all_keys.update(r.keys())
+        all_keys.discard(key_field)
         props = ", ".join(
-            f"n.{k} = row.{k}" for k in rows[0] if k != key_field
+            f"n.{k} = row.{k}" for k in sorted(all_keys)
         ) if rows else ""
         set_clause = f"SET {props}" if props else ""
         query = (

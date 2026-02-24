@@ -75,7 +75,8 @@ class SanctionsPipeline(Pipeline):
 
             sanction_id = f"{sanction_type}_{digits}_{idx}"
             date_start = parse_date(str(row["data_inicio"]))
-            date_end = parse_date(str(row["data_fim"]))
+            date_end_raw = parse_date(str(row["data_fim"]))
+            date_end = date_end_raw if date_end_raw else None
 
             sanctions.append({
                 "sanction_id": sanction_id,

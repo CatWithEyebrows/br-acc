@@ -76,7 +76,8 @@ class DatasusPipeline(Pipeline):
             municipio = str(row.get("codigo_municipio", "")).strip()
             uf = str(row.get("codigo_uf", "")).strip()
             sus_key = "estabelecimento_faz_atendimento_ambulatorial_sus"
-            atende_sus = str(row.get(sus_key, "")).strip()
+            atende_sus_raw = str(row.get(sus_key, "")).strip().upper()
+            atende_sus = "1" if atende_sus_raw in ("1", "SIM", "S") else "0"
             hospitalar = str(row.get("estabelecimento_possui_atendimento_hospitalar", "")).strip()
             nat_juridica = str(row.get("descricao_natureza_juridica_estabelecimento", "")).strip()
 

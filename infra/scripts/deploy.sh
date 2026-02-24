@@ -2,6 +2,7 @@
 set -euo pipefail
 
 DEPLOY_DIR="${DEPLOY_DIR:-/opt/icarus}"
+DOMAIN="${DOMAIN:?DOMAIN env var required — set to your production domain}"
 COMPOSE_FILE="$DEPLOY_DIR/infra/docker-compose.prod.yml"
 DRY_RUN=false
 
@@ -41,7 +42,7 @@ fi
 log "Waiting for health check..."
 if [ "$DRY_RUN" = false ]; then
     sleep 15
-    HEALTH_URL="https://${DOMAIN:-localhost}/health"
+    HEALTH_URL="https://${DOMAIN}/health"
     if curl -sf -k "$HEALTH_URL" > /dev/null 2>&1; then
         log "Health check passed ($HEALTH_URL)."
     else

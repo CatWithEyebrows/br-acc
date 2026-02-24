@@ -114,10 +114,10 @@ class TestSanctionsTransform:
         _load_fixture_data(pipeline)
         pipeline.transform()
 
-        # Second CEIS row has empty data_fim
+        # Second CEIS row has empty data_fim — stored as None, not empty string
         ceis_sanctions = [s for s in pipeline.sanctions if s["type"] == "CEIS"]
         date_ends = [s["date_end"] for s in ceis_sanctions]
-        assert "" in date_ends
+        assert None in date_ends
 
     def test_sanction_fields(self) -> None:
         pipeline = _make_pipeline()
