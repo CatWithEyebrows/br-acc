@@ -1,0 +1,5 @@
+cnpj;numero_do_contrato;valor_contratado_reais;valor_desembolsado_reais;data_da_contratacao;descricao_do_projeto;cliente;produto;juros;uf;municipio;setor_bndes;porte_do_cliente;situacao_do_contrato
+11222333000181;ABC-001;1.234.567,89;900.000,00;2023-01-15;Expansao industrial;Empresa Alfa Ltda;FINEM;TLP + 1,5%;SP;Sao Paulo;Industria;GRANDE;Ativo
+44555666000199;DEF-002;500.000,00;500.000,00;2023-06-20;Capital de giro;Beta Servicos SA;BNDES Automatico;TLP + 2,0%;RJ;Rio de Janeiro;Comercio;MEDIO;Ativo
+12345;GHI-003;100.000,00;50.000,00;2023-03-10;Projeto invalido;Invalida Corp;FINEM;TLP;MG;Belo Horizonte;Servicos;MICRO;Ativo
+11222333000181;;200.000,00;100.000,00;2023-09-01;Sem contrato;Empresa Alfa Ltda;FINEM;TLP;SP;Sao Paulo;Industria;GRANDE;Ativo

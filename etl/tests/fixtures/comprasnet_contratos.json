@@ -1,0 +1,110 @@
+[
+  {
+    "numeroControlePNCP": "11222333000181-2-000001/2024",
+    "numeroControlePncpCompra": "11222333000181-1-000050/2023",
+    "niFornecedor": "11222333000181",
+    "tipoPessoa": "PJ",
+    "nomeRazaoSocialFornecedor": "EMPRESA TESTE LTDA",
+    "objetoContrato": "AQUISIÇÃO DE MATERIAL DE ESCRITÓRIO",
+    "valorGlobal": 150000.00,
+    "valorInicial": 150000.00,
+    "dataAssinatura": "2024-01-15",
+    "dataVigenciaInicio": "2024-01-15",
+    "dataVigenciaFim": "2024-12-31",
+    "orgaoEntidade": {
+      "cnpj": "00394445000166",
+      "razaoSocial": "MINISTERIO DA SAUDE",
+      "poderId": "E",
+      "esferaId": "F"
+    },
+    "tipoContrato": {"id": 7, "nome": "Empenho"},
+    "anoContrato": 2024,
+    "sequencialContrato": 1,
+    "processo": "25000.123456/2023-01"
+  },
+  {
+    "numeroControlePNCP": "44555666000199-2-000002/2024",
+    "numeroControlePncpCompra": "44555666000199-1-000010/2024",
+    "niFornecedor": "44555666000199",
+    "tipoPessoa": "PJ",
+    "nomeRazaoSocialFornecedor": "CONSTRUTORA ABC S.A.",
+    "objetoContrato": "CONSTRUÇÃO DE UNIDADE BÁSICA DE SAÚDE",
+    "valorGlobal": 3200000.50,
+    "valorInicial": 3200000.50,
+    "dataAssinatura": "2024-03-01",
+    "dataVigenciaInicio": "2024-03-01",
+    "dataVigenciaFim": "2025-03-01",
+    "orgaoEntidade": {
+      "cnpj": "00394445000166",
+      "razaoSocial": "MINISTERIO DA SAUDE",
+      "poderId": "E",
+      "esferaId": "F"
+    },
+    "tipoContrato": {"id": 1, "nome": "Contrato"},
+    "anoContrato": 2024,
+    "sequencialContrato": 2,
+    "processo": "25000.654321/2024-01"
+  },
+  {
+    "numeroControlePNCP": "77888999000100-2-000003/2024",
+    "numeroControlePncpCompra": "77888999000100-1-000020/2024",
+    "niFornecedor": "77888999000100",
+    "tipoPessoa": "PJ",
+    "nomeRazaoSocialFornecedor": "Serviços Gerais ME",
+    "objetoContrato": "SERVIÇO DE VIGILÂNCIA PATRIMONIAL",
+    "valorGlobal": 480000.00,
+    "valorInicial": 480000.00,
+    "dataAssinatura": "2024-02-15",
+    "dataVigenciaInicio": "2024-02-15",
+    "dataVigenciaFim": "2025-02-15",
+    "orgaoEntidade": {
+      "cnpj": "26994558000123",
+      "razaoSocial": "MINISTERIO DA EDUCAÇÃO",
+      "poderId": "E",
+      "esferaId": "F"
+    },
+    "tipoContrato": {"id": 1, "nome": "Contrato"},
+    "anoContrato": 2024,
+    "sequencialContrato": 3,
+    "processo": "23000.111222/2024-01"
+  },
+  {
+    "numeroControlePNCP": "12345678901234-2-000004/2024",
+    "niFornecedor": "12345678901",
+    "tipoPessoa": "PF",
+    "nomeRazaoSocialFornecedor": "JOAO DA SILVA",
+    "objetoContrato": "SERVIÇO DE CONSULTORIA",
+    "valorGlobal": 50000.00,
+    "dataAssinatura": "2024-04-01",
+    "dataVigenciaFim": "2024-10-01",
+    "orgaoEntidade": {
+      "cnpj": "00394445000166",
+      "razaoSocial": "MINISTERIO DA SAUDE",
+      "poderId": "E",
+      "esferaId": "F"
+    },
+    "tipoContrato": {"id": 7, "nome": "Empenho"},
+    "anoContrato": 2024,
+    "sequencialContrato": 4
+  },
+  {
+    "numeroControlePNCP": "99000111000188-2-000005/2024",
+    "niFornecedor": "99000111000188",
+    "tipoPessoa": "PJ",
+    "nomeRazaoSocialFornecedor": "FORNECEDOR ZERADO LTDA",
+    "objetoContrato": "CONTRATO CANCELADO",
+    "valorGlobal": 0,
+    "valorInicial": 0,
+    "dataAssinatura": "2024-05-01",
+    "dataVigenciaFim": "2024-12-31",
+    "orgaoEntidade": {
+      "cnpj": "26994558000123",
+      "razaoSocial": "MINISTERIO DA EDUCAÇÃO",
+      "poderId": "E",
+      "esferaId": "F"
+    },
+    "tipoContrato": {"id": 1, "nome": "Contrato"},
+    "anoContrato": 2024,
+    "sequencialContrato": 5
+  }
+]

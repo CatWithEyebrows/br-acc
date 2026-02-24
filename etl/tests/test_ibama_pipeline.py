@@ -1,0 +1,134 @@
+from __future__ import annotations
+
+from pathlib import Path
+from unittest.mock import MagicMock
+
+import pandas as pd
+
+from icarus_etl.pipelines.ibama import IbamaPipeline
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def _make_pipeline() -> IbamaPipeline:
+    driver = MagicMock()
+    return IbamaPipeline(driver, data_dir=str(FIXTURES))
+
+
+def _load_fixture(pipeline: IbamaPipeline) -> None:
+    """Read the fixture CSV into the pipeline's internal DataFrame."""
+    csv_path = FIXTURES / "ibama" / "areas_embargadas.csv"
+    pipeline._raw = pd.read_csv(
+        csv_path,
+        sep=";",
+        dtype=str,
+        encoding="utf-8",
+        keep_default_na=False,
+    )
+
+
+def test_pipeline_name_and_source_id() -> None:
+    pipeline = _make_pipeline()
+    assert pipeline.name == "ibama"
+    assert pipeline.source_id == "ibama"
+
+
+def test_transform_creates_embargoes() -> None:
+    """5 rows: 2 valid companies, 1 valid person, 1 invalid doc (skip), 1 empty SEQ (skip) = 3."""
+    pipeline = _make_pipeline()
+    _load_fixture(pipeline)
+    pipeline.transform()
+
+    assert len(pipeline.embargoes) == 3
+
+
+def test_transform_links_companies_and_persons() -> None:
+    pipeline = _make_pipeline()
+    _load_fixture(pipeline)
+    pipeline.transform()
+
+    assert len(pipeline.companies) == 2
+    assert len(pipeline.persons) == 1
+
+    company_cnpjs = {c["cnpj"] for c in pipeline.companies}
+    assert "11.222.333/0001-81" in company_cnpjs
+    assert "44.555.666/0001-99" in company_cnpjs
+
+    person_cpfs = {p["cpf"] for p in pipeline.persons}
+    assert "123.456.789-01" in person_cpfs
+
+
+def test_transform_skips_invalid_document() -> None:
+    """Row with 5-digit document should be skipped entirely."""
+    pipeline = _make_pipeline()
+    _load_fixture(pipeline)
+    pipeline.transform()
+
+    all_ids = {e["embargo_id"] for e in pipeline.embargoes}
+    assert "ibama_embargo_1003" not in all_ids
+
+
+def test_transform_skips_empty_seq() -> None:
+    """Row with empty SEQ_TAD should be skipped."""
+    pipeline = _make_pipeline()
+    _load_fixture(pipeline)
+    pipeline.transform()
+
+    all_names = set()
+    for c in pipeline.companies:
+        all_names.add(c["razao_social"])
+    for p in pipeline.persons:
+        all_names.add(p["name"])
+    assert "SEM SEQ EMPRESA" not in all_names
+
+
+def test_transform_parses_dates() -> None:
+    """Both dd/mm/yyyy HH:MM:SS and dd/mm/yyyy formats should parse to ISO."""
+    pipeline = _make_pipeline()
+    _load_fixture(pipeline)
+    pipeline.transform()
+
+    dates = {e["embargo_id"]: e["date"] for e in pipeline.embargoes}
+    # datetime format: 15/03/2023 10:30:00
+    assert dates["ibama_embargo_1001"] == "2023-03-15"
+    # date-only format: 20/06/2023
+    assert dates["ibama_embargo_1002"] == "2023-06-20"
+
+
+def test_transform_parses_area() -> None:
+    """Brazilian comma-decimal format should be converted to float."""
+    pipeline = _make_pipeline()
+    _load_fixture(pipeline)
+    pipeline.transform()
+
+    areas = {e["embargo_id"]: e["area_ha"] for e in pipeline.embargoes}
+    assert areas["ibama_embargo_1001"] == 150.5
+    assert areas["ibama_embargo_1002"] == 30.0
+
+
+def test_transform_extracts_primary_biome() -> None:
+    """Comma-separated biome list should return only the first entry."""
+    pipeline = _make_pipeline()
+    _load_fixture(pipeline)
+    pipeline.transform()
+
+    biomes = {e["embargo_id"]: e["biome"] for e in pipeline.embargoes}
+    # "Amazonia, Cerrado" -> "Amazonia"
+    assert biomes["ibama_embargo_1001"] == "Amazonia"
+    # single biome
+    assert biomes["ibama_embargo_1002"] == "Cerrado"
+    # empty biome
+    assert biomes["ibama_embargo_1004"] == ""
+
+
+def test_load_calls_batch_loader() -> None:
+    pipeline = _make_pipeline()
+    _load_fixture(pipeline)
+    pipeline.transform()
+    pipeline.load()
+
+    driver = pipeline.driver
+    session = driver.session.return_value.__enter__.return_value
+    # Should have called session.run for:
+    # Embargo nodes, Company nodes, Person nodes, EMBARGADA rels = 4 calls minimum
+    assert session.run.call_count >= 4
