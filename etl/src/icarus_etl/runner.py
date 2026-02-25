@@ -8,7 +8,9 @@ from icarus_etl.pipelines.camara import CamaraPipeline
 from icarus_etl.pipelines.ceaf import CeafPipeline
 from icarus_etl.pipelines.cnpj import CNPJPipeline
 from icarus_etl.pipelines.comprasnet import ComprasnetPipeline
+from icarus_etl.pipelines.cpgf import CpgfPipeline
 from icarus_etl.pipelines.cvm import CvmPipeline
+from icarus_etl.pipelines.cvm_funds import CvmFundsPipeline
 from icarus_etl.pipelines.datasus import DatasusPipeline
 from icarus_etl.pipelines.dou import DouPipeline
 from icarus_etl.pipelines.holdings import HoldingsPipeline
@@ -20,13 +22,18 @@ from icarus_etl.pipelines.ofac import OfacPipeline
 from icarus_etl.pipelines.opensanctions import OpenSanctionsPipeline
 from icarus_etl.pipelines.pep_cgu import PepCguPipeline
 from icarus_etl.pipelines.pgfn import PgfnPipeline
+from icarus_etl.pipelines.pncp import PncpPipeline
 from icarus_etl.pipelines.rais import RaisPipeline
+from icarus_etl.pipelines.renuncias import RenunciasPipeline
 from icarus_etl.pipelines.sanctions import SanctionsPipeline
 from icarus_etl.pipelines.senado import SenadoPipeline
+from icarus_etl.pipelines.siconfi import SiconfiPipeline
+from icarus_etl.pipelines.siop import SiopPipeline
 from icarus_etl.pipelines.tcu import TcuPipeline
 from icarus_etl.pipelines.transferegov import TransferegovPipeline
 from icarus_etl.pipelines.transparencia import TransparenciaPipeline
 from icarus_etl.pipelines.tse import TSEPipeline
+from icarus_etl.pipelines.viagens import ViagensPipeline
 
 PIPELINES: dict[str, type] = {
     "cnpj": CNPJPipeline,
@@ -47,12 +54,19 @@ PIPELINES: dict[str, type] = {
     "icij": ICIJPipeline,
     "opensanctions": OpenSanctionsPipeline,
     "cvm": CvmPipeline,
+    "cvm_funds": CvmFundsPipeline,
     "camara": CamaraPipeline,
     "senado": SenadoPipeline,
     "ceaf": CeafPipeline,
+    "cpgf": CpgfPipeline,
     "leniency": LeniencyPipeline,
     "ofac": OfacPipeline,
     "holdings": HoldingsPipeline,
+    "viagens": ViagensPipeline,
+    "siop": SiopPipeline,
+    "pncp": PncpPipeline,
+    "renuncias": RenunciasPipeline,
+    "siconfi": SiconfiPipeline,
 }
 
 

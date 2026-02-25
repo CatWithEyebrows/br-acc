@@ -57,7 +57,14 @@ async def database_stats(
         "expulsion_count": record["expulsion_count"] if record else 0,
         "leniency_count": record["leniency_count"] if record else 0,
         "international_sanction_count": record["international_sanction_count"] if record else 0,
-        "data_sources": 24,
+        "gov_card_expense_count": record["gov_card_expense_count"] if record else 0,
+        "gov_travel_count": record["gov_travel_count"] if record else 0,
+        "bid_count": record["bid_count"] if record else 0,
+        "fund_count": record["fund_count"] if record else 0,
+        "dou_act_count": record["dou_act_count"] if record else 0,
+        "tax_waiver_count": record["tax_waiver_count"] if record else 0,
+        "municipal_finance_count": record["municipal_finance_count"] if record else 0,
+        "data_sources": 31,
     }
 
     _stats_cache = result
@@ -93,5 +100,12 @@ async def list_sources() -> dict[str, list[dict[str, str]]]:
             {"id": "leniency", "name": "Acordos de Leniência", "frequency": "monthly"},
             {"id": "ofac", "name": "OFAC SDN (Sanções Internacionais)", "frequency": "monthly"},
             {"id": "holdings", "name": "Brasil.IO (Holdings Empresariais)", "frequency": "monthly"},
+            {"id": "cpgf", "name": "CPGF (Cartão de Pagamento)", "frequency": "monthly"},
+            {"id": "viagens", "name": "Viagens a Serviço", "frequency": "monthly"},
+            {"id": "siop", "name": "SIOP (Emendas Parlamentares)", "frequency": "annual"},
+            {"id": "pncp", "name": "PNCP (Licitações)", "frequency": "monthly"},
+            {"id": "cvm_funds", "name": "CVM (Fundos de Investimento)", "frequency": "monthly"},
+            {"id": "renuncias", "name": "Renúncias Fiscais", "frequency": "annual"},
+            {"id": "siconfi", "name": "SICONFI (Finanças Municipais)", "frequency": "annual"},
         ]
     }

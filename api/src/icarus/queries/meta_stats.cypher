@@ -67,6 +67,27 @@ CALL {
 CALL {
   MATCH (s:InternationalSanction) RETURN count(s) AS international_sanction_count
 }
+CALL {
+  MATCH (g:GovCardExpense) RETURN count(g) AS gov_card_expense_count
+}
+CALL {
+  MATCH (t:GovTravel) RETURN count(t) AS gov_travel_count
+}
+CALL {
+  MATCH (b:Bid) RETURN count(b) AS bid_count
+}
+CALL {
+  MATCH (f:Fund) RETURN count(f) AS fund_count
+}
+CALL {
+  MATCH (d:DOUAct) RETURN count(d) AS dou_act_count
+}
+CALL {
+  MATCH (t:TaxWaiver) RETURN count(t) AS tax_waiver_count
+}
+CALL {
+  MATCH (m:MunicipalFinance) RETURN count(m) AS municipal_finance_count
+}
 RETURN total_nodes, total_relationships,
        person_count, company_count, health_count,
        finance_count, contract_count, sanction_count,
@@ -75,4 +96,7 @@ RETURN total_nodes, total_relationships,
        offshore_entity_count, offshore_officer_count,
        global_pep_count, cvm_proceeding_count, expense_count,
        pep_record_count, expulsion_count, leniency_count,
-       international_sanction_count
+       international_sanction_count,
+       gov_card_expense_count, gov_travel_count, bid_count,
+       fund_count, dou_act_count, tax_waiver_count,
+       municipal_finance_count

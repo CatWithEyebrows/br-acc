@@ -1,0 +1,47 @@
+[
+  {
+    "exercicio": "2023",
+    "cod_ibge": "3550308",
+    "ente": "São Paulo",
+    "cnpj": "46.395.000/0001-39",
+    "conta": "Receita Corrente Líquida",
+    "coluna": "Valor",
+    "valor": 85432100000.50
+  },
+  {
+    "exercicio": "2023",
+    "cod_ibge": "3304557",
+    "ente": "Rio de Janeiro",
+    "cnpj": "42.498.733/0001-48",
+    "conta": "Despesa Total com Pessoal",
+    "coluna": "Valor",
+    "valor": 22156000000.00
+  },
+  {
+    "exercicio": "2023",
+    "cod_ibge": "5300108",
+    "ente": "Brasília",
+    "cnpj": "00.394.601/0001-26",
+    "conta": "Dívida Consolidada Líquida",
+    "coluna": "Valor",
+    "valor": 15890000000.75
+  },
+  {
+    "exercicio": "2023",
+    "cod_ibge": "2927408",
+    "ente": "Salvador",
+    "cnpj": "",
+    "conta": "Receita Corrente Líquida",
+    "coluna": "Valor",
+    "valor": 9876543210.00
+  },
+  {
+    "exercicio": "2023",
+    "cod_ibge": "",
+    "ente": "Sem Código",
+    "cnpj": "12.345.678/0001-90",
+    "conta": "Receita Total",
+    "coluna": "Valor",
+    "valor": 500000.00
+  }
+]

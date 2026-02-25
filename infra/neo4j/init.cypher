@@ -92,6 +92,18 @@ CREATE CONSTRAINT declared_asset_id_unique IF NOT EXISTS
 CREATE CONSTRAINT holding_rel_id_unique IF NOT EXISTS
   FOR (h:Holding) REQUIRE h.holding_id IS UNIQUE;
 
+CREATE CONSTRAINT bid_id_unique IF NOT EXISTS
+  FOR (b:Bid) REQUIRE b.bid_id IS UNIQUE;
+
+CREATE CONSTRAINT fund_cnpj_unique IF NOT EXISTS
+  FOR (f:Fund) REQUIRE f.fund_cnpj IS UNIQUE;
+
+CREATE CONSTRAINT dou_act_id_unique IF NOT EXISTS
+  FOR (d:DOUAct) REQUIRE d.act_id IS UNIQUE;
+
+CREATE CONSTRAINT municipal_finance_id_unique IF NOT EXISTS
+  FOR (m:MunicipalFinance) REQUIRE m.finance_id IS UNIQUE;
+
 // ── Indexes ─────────────────────────────────────────────
 CREATE INDEX person_name IF NOT EXISTS
   FOR (p:Person) ON (p.name);
@@ -282,9 +294,41 @@ CREATE INDEX declared_asset_value IF NOT EXISTS
 CREATE INDEX international_sanction_source IF NOT EXISTS
   FOR (s:InternationalSanction) ON (s.source);
 
+// ── Bid Indexes ─────────────────────────────────────────────
+CREATE INDEX bid_date IF NOT EXISTS
+  FOR (b:Bid) ON (b.date);
+
+CREATE INDEX bid_modality IF NOT EXISTS
+  FOR (b:Bid) ON (b.modality);
+
+// ── Fund Indexes ─────────────────────────────────────────────
+CREATE INDEX fund_name IF NOT EXISTS
+  FOR (f:Fund) ON (f.fund_name);
+
+CREATE INDEX fund_type IF NOT EXISTS
+  FOR (f:Fund) ON (f.fund_type);
+
+// ── DOUAct Indexes ─────────────────────────────────────────
+CREATE INDEX dou_act_date IF NOT EXISTS
+  FOR (d:DOUAct) ON (d.date);
+
+CREATE INDEX dou_act_type IF NOT EXISTS
+  FOR (d:DOUAct) ON (d.act_type);
+
+// ── GovTravel Indexes ──────────────────────────────────────
+CREATE INDEX gov_travel_date IF NOT EXISTS
+  FOR (t:GovTravel) ON (t.start_date);
+
+// ── MunicipalFinance Indexes ───────────────────────────────
+CREATE INDEX municipal_finance_year IF NOT EXISTS
+  FOR (m:MunicipalFinance) ON (m.year);
+
+CREATE INDEX municipal_finance_cod_ibge IF NOT EXISTS
+  FOR (m:MunicipalFinance) ON (m.cod_ibge);
+
 // ── Fulltext Search Index ───────────────────────────────
 CREATE FULLTEXT INDEX entity_search IF NOT EXISTS
-  FOR (n:Person|Company|Health|Education|Contract|Amendment|Convenio|Embargo|PublicOffice|OffshoreEntity|OffshoreOfficer|GlobalPEP|CVMProceeding|Expense|PEPRecord|Expulsion|LeniencyAgreement|GovCardExpense|TaxWaiver|LegalCase|DeclaredAsset|InternationalSanction)
+  FOR (n:Person|Company|Health|Education|Contract|Amendment|Convenio|Embargo|PublicOffice|OffshoreEntity|OffshoreOfficer|GlobalPEP|CVMProceeding|Expense|PEPRecord|Expulsion|LeniencyAgreement|GovCardExpense|GovTravel|TaxWaiver|LegalCase|DeclaredAsset|InternationalSanction|Bid|Fund|DOUAct|MunicipalFinance)
   ON EACH [n.name, n.razao_social, n.cpf, n.cnpj, n.cnes_code, n.object, n.contracting_org, n.convenente, n.infraction, n.org, n.function, n.jurisdiction, n.penalty_type, n.description];
 
 // ── User Constraints ────────────────────────────────────

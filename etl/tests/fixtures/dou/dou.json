@@ -1,0 +1,47 @@
+[
+  {
+    "urlTitle": "decreto-de-15-de-janeiro-de-2024-nomeacao-12345",
+    "title": "DECRETO DE 15 DE JANEIRO DE 2024",
+    "abstract": "NOMEAR FULANO DA SILVA, CPF 529.982.247-25, para o cargo de Diretor do Departamento de Gestao Estrategica do Ministerio da Fazenda.",
+    "pubDate": "2024-01-15",
+    "pubName": "DO1",
+    "artCategory": "Atos do Poder Executivo",
+    "hierarchyStr": "Presidencia da Republica/Secretaria-Geral"
+  },
+  {
+    "urlTitle": "extrato-de-contrato-67890",
+    "title": "EXTRATO DE CONTRATO No 42/2024",
+    "abstract": "Contratada: TECH SOLUTIONS LTDA, CNPJ 11.222.333/0001-81. Objeto: Prestacao de servicos de tecnologia da informacao. Valor: R$ 1.500.000,00. Vigencia: 12 meses.",
+    "pubDate": "2024-01-20",
+    "pubName": "DO3",
+    "artCategory": "Contratos",
+    "hierarchyStr": "Ministerio da Ciencia e Tecnologia"
+  },
+  {
+    "urlTitle": "portaria-exoneracao-99999",
+    "title": "PORTARIA No 789, DE 5 DE FEVEREIRO DE 2024",
+    "abstract": "EXONERAR MARIA SOUZA, CPF 111.444.777-35, do cargo de Coordenadora-Geral de Planejamento do Ministerio da Educacao, a partir de 10 de fevereiro de 2024.",
+    "pubDate": "2024-02-05",
+    "pubName": "DO2",
+    "artCategory": "Atos do Poder Executivo",
+    "hierarchyStr": "Ministerio da Educacao"
+  },
+  {
+    "urlTitle": "aviso-de-penalidade-55555",
+    "title": "AVISO DE PENALIDADE",
+    "abstract": "Aplicacao de penalidade de suspensao temporaria a empresa CONSTRUCOES BRASIL S.A., CNPJ 99.888.777/0001-66, pelo descumprimento contratual. Processo 12345.678901/2024-01.",
+    "pubDate": "2024-03-10",
+    "pubName": "DO3",
+    "artCategory": "Avisos",
+    "hierarchyStr": "Ministerio da Infraestrutura"
+  },
+  {
+    "urlTitle": "ato-sem-documento-00000",
+    "title": "PORTARIA No 100",
+    "abstract": "Aprovacao do regimento interno do departamento.",
+    "pubDate": "2024-04-01",
+    "pubName": "DO1",
+    "artCategory": "Atos do Poder Executivo",
+    "hierarchyStr": "Ministerio do Planejamento"
+  }
+]

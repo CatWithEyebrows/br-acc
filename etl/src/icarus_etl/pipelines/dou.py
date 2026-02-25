@@ -1,36 +1,137 @@
+"""ETL pipeline for DOU (Diario Oficial da Uniao) gazette acts.
+
+Ingests structured act data from the official Imprensa Nacional portal
+(in.gov.br). Creates DOUAct nodes linked to Person (by CPF) via PUBLICOU
+and to Company (by CNPJ) via MENCIONOU.
+
+Data source: Imprensa Nacional search API or pre-downloaded JSON files
+in data/dou/. See scripts/download_dou.py for acquisition.
+"""
+
 from __future__ import annotations
 
-import csv
+import hashlib
 import json
 import logging
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from icarus_etl.base import Pipeline
 from icarus_etl.loader import Neo4jBatchLoader
-from icarus_etl.transforms import format_cnpj, strip_document
+from icarus_etl.transforms import (
+    deduplicate_rows,
+    format_cnpj,
+    format_cpf,
+    parse_date,
+    strip_document,
+)
 
 if TYPE_CHECKING:
     from neo4j import Driver
 
 logger = logging.getLogger(__name__)
 
+# DOU sections
+_SECTION_MAP: dict[str, str] = {
+    "DO1": "secao_1",
+    "DO2": "secao_2",
+    "DO3": "secao_3",
+    "DOE": "secao_extra",
+}
+
+# Act-type keywords for classification
+_NOMINATION_KEYWORDS = (
+    "nomear", "nomeacao", "nomeação", "designar", "designacao", "designação",
+)
+_EXONERATION_KEYWORDS = (
+    "exonerar", "exoneracao", "exoneração", "dispensar",
+)
+_CONTRACT_KEYWORDS = (
+    "contrato", "extrato de contrato", "contratada", "contratante",
+)
+_PENALTY_KEYWORDS = (
+    "penalidade", "suspensao", "suspensão", "impedimento",
+    "inidoneidade", "advertencia", "advertência",
+)
+
+# Regex for document extraction
+_CPF_RE = re.compile(r"\d{3}\.\d{3}\.\d{3}-\d{2}")
+_CNPJ_RE = re.compile(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}")
+# Also match raw 14-digit CNPJs
+_CNPJ_RAW_RE = re.compile(r"\d{14}")
+
+
+def _classify_act(title: str, abstract: str) -> str:
+    """Classify a DOU act by type based on title and abstract text."""
+    combined = f"{title} {abstract}".lower()
+
+    if any(kw in combined for kw in _NOMINATION_KEYWORDS):
+        return "nomeacao"
+    if any(kw in combined for kw in _EXONERATION_KEYWORDS):
+        return "exoneracao"
+    if any(kw in combined for kw in _CONTRACT_KEYWORDS):
+        return "contrato"
+    if any(kw in combined for kw in _PENALTY_KEYWORDS):
+        return "penalidade"
+    return "outro"
+
+
+def _make_act_id(url_title: str, date: str) -> str:
+    """Generate a stable act ID from URL title and date."""
+    raw = f"dou_{url_title}_{date}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+
+def _extract_cpfs(text: str) -> list[str]:
+    """Extract formatted CPFs from text."""
+    matches = _CPF_RE.findall(text)
+    cpfs: list[str] = []
+    for m in matches:
+        digits = strip_document(m)
+        if len(digits) == 11:
+            cpfs.append(format_cpf(m))
+    return cpfs
+
+
+def _extract_cnpjs(text: str) -> list[str]:
+    """Extract and format CNPJ numbers from text.
+
+    Matches both formatted (XX.XXX.XXX/XXXX-XX) and raw 14-digit CNPJs.
+    """
+    formatted = _CNPJ_RE.findall(text)
+    raw = _CNPJ_RAW_RE.findall(text)
+
+    seen: set[str] = set()
+    cnpjs: list[str] = []
+
+    for m in formatted:
+        digits = strip_document(m)
+        if len(digits) == 14 and digits not in seen:
+            seen.add(digits)
+            cnpjs.append(format_cnpj(m))
+
+    for m in raw:
+        # Skip if this raw match is part of an already-matched formatted CNPJ
+        if len(m) == 14 and m not in seen:
+            # Verify it's not a substring of CPF or other number
+            seen.add(m)
+            cnpjs.append(format_cnpj(m))
+
+    return cnpjs
+
 
 class DouPipeline(Pipeline):
-    """ETL pipeline for DOU (Diario Oficial da Uniao) gazette data.
+    """ETL pipeline for DOU (Diario Oficial da Uniao) acts.
 
-    Supports two input formats:
-    1. Querido Diário JSON (from their API or data dumps)
-    2. CSV with columns: date, territory_id, territory_name, edition,
-       is_extra_edition, url, excerpt (optional)
-
-    The Querido Diário API (queridodiario.ok.org.br) is behind Cloudflare
-    bot protection — data must be obtained via browser or their data dumps.
-    See scripts/download_dou.sh for instructions.
+    Reads JSON files from data/dou/ containing act records from the
+    Imprensa Nacional portal (in.gov.br). Each act becomes a DOUAct node,
+    with relationships to Person (PUBLICOU) and Company (MENCIONOU) based
+    on CPF/CNPJ extraction from act text.
     """
 
     name = "dou"
-    source_id = "querido_diario"
+    source_id = "imprensa_nacional"
 
     def __init__(
         self,
@@ -40,8 +141,10 @@ class DouPipeline(Pipeline):
         chunk_size: int = 50_000,
     ) -> None:
         super().__init__(driver, data_dir, limit=limit, chunk_size=chunk_size)
-        self.gazettes: list[dict[str, Any]] = []
-        self.gazette_entity_links: list[dict[str, Any]] = []
+        self._raw_acts: list[dict[str, str]] = []
+        self.acts: list[dict[str, Any]] = []
+        self.person_rels: list[dict[str, Any]] = []
+        self.company_rels: list[dict[str, Any]] = []
 
     def extract(self) -> None:
         dou_dir = Path(self.data_dir) / "dou"
@@ -49,30 +152,18 @@ class DouPipeline(Pipeline):
             msg = f"DOU data directory not found at {dou_dir}"
             raise FileNotFoundError(msg)
 
-        # Try JSON files first (Querido Diário format)
         json_files = sorted(dou_dir.glob("*.json"))
-        csv_files = sorted(dou_dir.glob("*.csv"))
-
-        self._raw_rows: list[dict[str, str]] = []
-
-        if json_files:
-            self._extract_json(json_files)
-        elif csv_files:
-            self._extract_csv(csv_files)
-        else:
-            logger.warning("[dou] No JSON or CSV files found in %s", dou_dir)
+        if not json_files:
+            logger.warning("[dou] No JSON files found in %s", dou_dir)
             return
 
-        logger.info("[dou] Extracted %d gazette records", len(self._raw_rows))
-
-    def _extract_json(self, files: list[Path]) -> None:
-        for f in files:
+        for f in json_files:
             with open(f, encoding="utf-8") as fh:
                 data = json.load(fh)
 
-            # Handle both list and QD API response format
-            if isinstance(data, dict) and "gazettes" in data:
-                items = data["gazettes"]
+            # Handle IN API response (list of acts) or wrapper format
+            if isinstance(data, dict) and "jsonArray" in data:
+                items = data["jsonArray"]
             elif isinstance(data, list):
                 items = data
             else:
@@ -80,112 +171,120 @@ class DouPipeline(Pipeline):
                 continue
 
             for item in items:
-                self._raw_rows.append({
-                    "date": str(item.get("date", "")),
-                    "territory_id": str(item.get("territory_id", "")),
-                    "territory_name": str(item.get("territory_name", "")),
-                    "edition": str(item.get("edition", "")),
-                    "is_extra_edition": str(item.get("is_extra_edition", False)),
-                    "url": str(item.get("url", item.get("txt_url", ""))),
-                    "excerpt": str(item.get("excerpts", [""])[0])
-                    if isinstance(item.get("excerpts"), list)
-                    else str(item.get("excerpt", "")),
+                self._raw_acts.append({
+                    "urlTitle": str(item.get("urlTitle", "")),
+                    "title": str(item.get("title", "")),
+                    "abstract": str(item.get("abstract", "")),
+                    "pubDate": str(item.get("pubDate", "")),
+                    "pubName": str(item.get("pubName", "")),
+                    "artCategory": str(item.get("artCategory", "")),
+                    "hierarchyStr": str(item.get("hierarchyStr", "")),
                 })
 
-                if self.limit and len(self._raw_rows) >= self.limit:
-                    return
+                if self.limit and len(self._raw_acts) >= self.limit:
+                    break
 
-    def _extract_csv(self, files: list[Path]) -> None:
-        for f in files:
-            with open(f, encoding="utf-8", newline="") as fh:
-                reader = csv.DictReader(fh)
-                for row in reader:
-                    self._raw_rows.append(row)
-                    if self.limit and len(self._raw_rows) >= self.limit:
-                        return
+            if self.limit and len(self._raw_acts) >= self.limit:
+                break
+
+        logger.info("[dou] Extracted %d act records", len(self._raw_acts))
 
     def transform(self) -> None:
-        gazettes: list[dict[str, Any]] = []
-        links: list[dict[str, Any]] = []
+        acts: list[dict[str, Any]] = []
+        person_rels: list[dict[str, Any]] = []
+        company_rels: list[dict[str, Any]] = []
+        skipped = 0
 
-        for row in self._raw_rows:
-            date = row.get("date", "").strip()
-            territory_id = row.get("territory_id", "").strip()
-            territory_name = row.get("territory_name", "").strip()
+        for raw in self._raw_acts:
+            url_title = raw["urlTitle"].strip()
+            title = raw["title"].strip()
+            abstract = raw["abstract"].strip()
+            pub_date = raw["pubDate"].strip()
 
-            if not date or not territory_id:
+            if not url_title or not pub_date:
+                skipped += 1
                 continue
 
-            edition = row.get("edition", "").strip()
-            is_extra = row.get("is_extra_edition", "").strip().lower() in (
-                "true",
-                "1",
-                "sim",
-            )
-            url = row.get("url", "").strip()
+            date = parse_date(pub_date)
+            act_id = _make_act_id(url_title, date)
+            act_type = _classify_act(title, abstract)
+            section = _SECTION_MAP.get(raw["pubName"].strip(), raw["pubName"].strip())
+            agency = raw["hierarchyStr"].strip()
+            category = raw["artCategory"].strip()
 
-            gazette_id = f"dou_{territory_id}_{date}_{edition or '0'}"
+            # Build URL from urlTitle
+            url = f"https://www.in.gov.br/web/dou/-/{url_title}"
 
-            gazettes.append({
-                "gazette_id": gazette_id,
+            acts.append({
+                "act_id": act_id,
+                "title": title,
+                "act_type": act_type,
                 "date": date,
-                "territory_id": territory_id,
-                "territory_name": territory_name,
-                "edition": edition,
-                "is_extra_edition": is_extra,
+                "section": section,
+                "agency": agency,
+                "category": category,
+                "text_excerpt": abstract[:500] if abstract else "",
                 "url": url,
-                "source": "querido_diario",
+                "source": "imprensa_nacional",
             })
 
-            # Extract CNPJ mentions from excerpt if available
-            excerpt = row.get("excerpt", "").strip()
-            if excerpt:
-                cnpjs = self._extract_cnpjs(excerpt)
-                for cnpj in cnpjs:
-                    links.append({
-                        "source_key": cnpj,
-                        "target_key": gazette_id,
-                    })
+            # Extract CPFs -> PUBLICOU relationships
+            cpfs = _extract_cpfs(abstract)
+            for cpf in cpfs:
+                person_rels.append({
+                    "source_key": cpf,
+                    "target_key": act_id,
+                })
 
-        self.gazettes = gazettes
-        self.gazette_entity_links = links
+            # Extract CNPJs -> MENCIONOU relationships
+            cnpjs = _extract_cnpjs(abstract)
+            for cnpj in cnpjs:
+                company_rels.append({
+                    "source_key": cnpj,
+                    "target_key": act_id,
+                })
+
+        self.acts = deduplicate_rows(acts, ["act_id"])
+        self.person_rels = person_rels
+        self.company_rels = company_rels
+
         logger.info(
-            "[dou] Transformed %d gazettes, %d entity mentions",
-            len(self.gazettes),
-            len(self.gazette_entity_links),
+            "[dou] Transformed %d acts (%d person links, %d company links, skipped %d)",
+            len(self.acts),
+            len(self.person_rels),
+            len(self.company_rels),
+            skipped,
         )
 
-    def _extract_cnpjs(self, text: str) -> list[str]:
-        """Extract and format valid CNPJ numbers from text."""
-        import re
-
-        # Match formatted (XX.XXX.XXX/XXXX-XX) or raw 14-digit CNPJs
-        pattern = r"\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}"
-        matches = re.findall(pattern, text)
-
-        cnpjs = []
-        for m in matches:
-            digits = strip_document(m)
-            if len(digits) == 14:
-                cnpjs.append(format_cnpj(m))
-        return cnpjs
-
     def load(self) -> None:
+        if not self.acts:
+            logger.warning("[dou] No acts to load")
+            return
+
         loader = Neo4jBatchLoader(self.driver)
 
-        if self.gazettes:
-            loader.load_nodes("Gazette", self.gazettes, key_field="gazette_id")
-            logger.info("[dou] Loaded %d Gazette nodes", len(self.gazettes))
+        # Load DOUAct nodes
+        count = loader.load_nodes("DOUAct", self.acts, key_field="act_id")
+        logger.info("[dou] Loaded %d DOUAct nodes", count)
 
-        if self.gazette_entity_links:
+        # PUBLICOU: Person -> DOUAct (match existing persons by CPF)
+        if self.person_rels:
             query = (
                 "UNWIND $rows AS row "
-                "MATCH (g:Gazette {gazette_id: row.target_key}) "
+                "MATCH (p:Person {cpf: row.source_key}) "
+                "MATCH (a:DOUAct {act_id: row.target_key}) "
+                "MERGE (p)-[:PUBLICOU]->(a)"
+            )
+            count = loader.run_query_with_retry(query, self.person_rels)
+            logger.info("[dou] Created %d PUBLICOU relationships", count)
+
+        # MENCIONOU: Company -> DOUAct (match existing companies by CNPJ)
+        if self.company_rels:
+            query = (
+                "UNWIND $rows AS row "
                 "MATCH (c:Company {cnpj: row.source_key}) "
-                "MERGE (c)-[:MENCIONADA_EM]->(g)"
+                "MATCH (a:DOUAct {act_id: row.target_key}) "
+                "MERGE (c)-[:MENCIONOU]->(a)"
             )
-            loader.run_query(query, self.gazette_entity_links)
-            logger.info(
-                "[dou] Created %d MENCIONADA_EM relationships",
-                len(self.gazette_entity_links),
-            )
+            count = loader.run_query_with_retry(query, self.company_rels)
+            logger.info("[dou] Created %d MENCIONOU relationships", count)

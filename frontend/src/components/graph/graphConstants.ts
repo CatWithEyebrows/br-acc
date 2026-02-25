@@ -31,6 +31,13 @@ export const ICON_MAP: Record<string, string> = {
   expulsion: "UserX",
   leniencyAgreement: "Scale",
   internationalSanction: "Globe",
+  govCardExpense: "CreditCard",
+  govTravel: "Plane",
+  bid: "Gavel",
+  fund: "PiggyBank",
+  douAct: "Newspaper",
+  taxWaiver: "Receipt",
+  municipalFinance: "Landmark",
 };
 
 // Pre-rendered icon cache
@@ -72,6 +79,13 @@ function createIconSvg(type: string, color: string, size: number): string {
     expulsion: `<circle cx="${s / 2}" cy="${s * 0.35}" r="${s * 0.2}" fill="${color}"/><line x1="${s * 0.3}" y1="${s * 0.6}" x2="${s * 0.7}" y2="${s * 0.8}" stroke="${color}" stroke-width="2"/><line x1="${s * 0.7}" y1="${s * 0.6}" x2="${s * 0.3}" y2="${s * 0.8}" stroke="${color}" stroke-width="2"/>`,
     leniencyAgreement: `<polygon points="${s / 2},${s * 0.2} ${s * 0.2},${s * 0.6} ${s * 0.8},${s * 0.6}" fill="${color}"/><rect x="${s * 0.35}" y="${s * 0.6}" width="${s * 0.3}" height="${s * 0.2}" fill="${color}"/>`,
     internationalSanction: `<circle cx="${s / 2}" cy="${s / 2}" r="${s * 0.35}" fill="none" stroke="${color}" stroke-width="1.5"/><line x1="${s * 0.15}" y1="${s / 2}" x2="${s * 0.85}" y2="${s / 2}" stroke="${color}" stroke-width="1"/><ellipse cx="${s / 2}" cy="${s / 2}" rx="${s * 0.15}" ry="${s * 0.35}" fill="none" stroke="${color}" stroke-width="1"/>`,
+    govCardExpense: `<rect x="${s * 0.15}" y="${s * 0.3}" width="${s * 0.7}" height="${s * 0.45}" rx="2" fill="${color}"/><line x1="${s * 0.15}" y1="${s * 0.45}" x2="${s * 0.85}" y2="${s * 0.45}" stroke="#060a07" stroke-width="1.5"/>`,
+    govTravel: `<polygon points="${s / 2},${s * 0.2} ${s * 0.3},${s * 0.5} ${s * 0.7},${s * 0.5}" fill="${color}"/><rect x="${s * 0.35}" y="${s * 0.5}" width="${s * 0.3}" height="${s * 0.25}" fill="${color}"/>`,
+    bid: `<rect x="${s * 0.2}" y="${s * 0.2}" width="${s * 0.6}" height="${s * 0.6}" rx="1" fill="${color}"/><text x="${s / 2}" y="${s * 0.6}" text-anchor="middle" font-size="${s * 0.3}" fill="#060a07">§</text>`,
+    fund: `<circle cx="${s / 2}" cy="${s * 0.45}" r="${s * 0.3}" fill="${color}"/><rect x="${s * 0.3}" y="${s * 0.15}" width="${s * 0.4}" height="${s * 0.15}" rx="1" fill="${color}"/>`,
+    douAct: `<rect x="${s * 0.15}" y="${s * 0.15}" width="${s * 0.7}" height="${s * 0.7}" rx="1" fill="${color}"/><line x1="${s * 0.3}" y1="${s * 0.35}" x2="${s * 0.7}" y2="${s * 0.35}" stroke="#060a07" stroke-width="1"/><line x1="${s * 0.3}" y1="${s * 0.5}" x2="${s * 0.7}" y2="${s * 0.5}" stroke="#060a07" stroke-width="1"/><line x1="${s * 0.3}" y1="${s * 0.65}" x2="${s * 0.55}" y2="${s * 0.65}" stroke="#060a07" stroke-width="1"/>`,
+    taxWaiver: `<rect x="${s * 0.2}" y="${s * 0.15}" width="${s * 0.6}" height="${s * 0.7}" rx="1" fill="${color}"/><text x="${s / 2}" y="${s * 0.6}" text-anchor="middle" font-size="${s * 0.3}" fill="#060a07">%</text>`,
+    municipalFinance: `<rect x="${s * 0.2}" y="${s * 0.4}" width="${s * 0.6}" height="${s * 0.45}" rx="1" fill="${color}"/><polygon points="${s / 2},${s * 0.15} ${s * 0.15},${s * 0.4} ${s * 0.85},${s * 0.4}" fill="${color}"/>`,
   };
   const shape =
     shapes[type] ??

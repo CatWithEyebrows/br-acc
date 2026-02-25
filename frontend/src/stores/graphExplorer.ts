@@ -50,6 +50,13 @@ const INITIAL_ENTITY_TYPES = new Set([
   "expulsion",
   "leniencyAgreement",
   "internationalSanction",
+  "govCardExpense",
+  "govTravel",
+  "bid",
+  "fund",
+  "douAct",
+  "taxWaiver",
+  "municipalFinance",
 ]);
 
 const INITIAL_REL_TYPES = new Set([
@@ -71,6 +78,15 @@ const INITIAL_REL_TYPES = new Set([
   "EXPULSO",
   "FIRMOU_LENIENCIA",
   "HOLDING_DE",
+  "GASTOU_CARTAO",
+  "VIAJOU",
+  "LICITOU",
+  "ADMINISTRA",
+  "GERE",
+  "PUBLICOU",
+  "MENCIONOU",
+  "RECEBEU_RENUNCIA",
+  "DECLAROU_FINANCA",
 ]);
 
 function initialState() {

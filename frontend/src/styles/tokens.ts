@@ -20,6 +20,13 @@ export const dataColors = {
   expulsion: "#DC2626",
   leniencyAgreement: "#059669",
   internationalSanction: "#B91C1C",
+  govCardExpense: "#EAB308",
+  govTravel: "#14B8A6",
+  bid: "#8B5CF6",
+  fund: "#0284C7",
+  douAct: "#78716C",
+  taxWaiver: "#DB2777",
+  municipalFinance: "#0D9488",
 } as const;
 
 export type DataEntityType = keyof typeof dataColors;
@@ -50,6 +57,16 @@ export const relationshipColors: Record<string, string> = {
   EXPULSO: "#DC2626",
   FIRMOU_LENIENCIA: "#059669",
   HOLDING_DE: "#E07A5F",
+  GASTOU_CARTAO: "#EAB308",
+  VIAJOU: "#14B8A6",
+  LICITOU: "#8B5CF6",
+  ADMINISTRA: "#0284C7",
+  GERE: "#0284C7",
+  PUBLICOU: "#78716C",
+  MENCIONOU: "#78716C",
+  RECEBEU_RENUNCIA: "#DB2777",
+  DECLAROU_FINANCA: "#0D9488",
+  FORNECEU_LICITACAO: "#8B5CF6",
 };
 
 export const semanticColors = {
@@ -83,6 +100,13 @@ export const entityColors: Record<string, string> = {
   expulsion: "#DC2626",
   leniencyAgreement: "#059669",
   internationalSanction: "#B91C1C",
+  govCardExpense: "#EAB308",
+  govTravel: "#14B8A6",
+  bid: "#8B5CF6",
+  fund: "#0284C7",
+  douAct: "#78716C",
+  taxWaiver: "#DB2777",
+  municipalFinance: "#0D9488",
 };
 
 export type EntityType = keyof typeof entityColors;
