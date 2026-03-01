@@ -9,6 +9,13 @@ from icarus.dependencies import get_session
 from icarus.models.entity import SourceAttribution
 from icarus.models.graph import GraphEdge, GraphNode, GraphResponse
 from icarus.services.neo4j_service import execute_query, sanitize_props
+from icarus.services.public_guard import (
+    enforce_person_access_policy,
+    has_person_labels,
+    infer_exposure_tier,
+    sanitize_public_properties,
+    should_hide_person_entities,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +141,10 @@ async def get_graph(
     for node in raw_nodes:
         node_id = node.element_id
         labels = list(node.labels)
+        if should_hide_person_entities() and has_person_labels(labels):
+            if node_id == center_id:
+                enforce_person_access_policy(labels)
+            continue
 
         node_ids.add(node_id)
         props = dict(node)
@@ -164,9 +175,10 @@ async def get_graph(
             label=_extract_label(node, labels),
             type=labels[0].lower() if labels else "unknown",
             document_id=document_id,
-            properties=_slim_props(props),
+            properties=sanitize_public_properties(_slim_props(props)),
             sources=sources,
             is_pep=_is_pep(props),
+            exposure_tier=infer_exposure_tier(labels),
         ))
 
     # Parse edges — only between accepted nodes
@@ -199,9 +211,10 @@ async def get_graph(
             source=source_id,
             target=target_id,
             type=rel.type,
-            properties=sanitize_props(rel_props),
+            properties=sanitize_public_properties(sanitize_props(rel_props)),
             confidence=confidence,
             sources=rel_sources,
+            exposure_tier="public_safe",
         ))
 
     return GraphResponse(nodes=nodes, edges=edges, center_id=center_id)

@@ -10,6 +10,7 @@ class PatternResult(BaseModel):
     data: dict[str, str | float | int | bool | list[str] | None]
     entity_ids: list[str]
     sources: list[SourceAttribution]
+    exposure_tier: str = "public_safe"
 
 
 class PatternResponse(BaseModel):

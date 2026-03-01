@@ -4,10 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from neo4j import AsyncDriver, AsyncSession
 from starlette.requests import Request
 
+from icarus.config import settings
 from icarus.dependencies import get_driver, get_session
 from icarus.middleware.rate_limit import limiter
 from icarus.models.pattern import PATTERN_METADATA, PatternResponse
 from icarus.services.pattern_service import PATTERN_QUERIES, run_all_patterns, run_pattern
+from icarus.services.public_guard import enforce_entity_lookup_enabled
 
 router = APIRouter(prefix="/api/v1/patterns", tags=["patterns"])
 
@@ -21,6 +23,8 @@ async def get_patterns_for_entity(
     lang: Annotated[str, Query()] = "pt",
     include_probable: Annotated[bool, Query()] = False,
 ) -> PatternResponse:
+    if settings.public_mode:
+        enforce_entity_lookup_enabled()
     results = await run_all_patterns(
         driver,
         entity_id,
@@ -44,6 +48,8 @@ async def get_specific_pattern(
     lang: Annotated[str, Query()] = "pt",
     include_probable: Annotated[bool, Query()] = False,
 ) -> PatternResponse:
+    if settings.public_mode:
+        enforce_entity_lookup_enabled()
     if pattern_name not in PATTERN_QUERIES:
         available = list(PATTERN_QUERIES.keys())
         raise HTTPException(

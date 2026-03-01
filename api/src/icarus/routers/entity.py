@@ -16,6 +16,15 @@ from icarus.models.entity import (
     TimelineResponse,
 )
 from icarus.services.neo4j_service import execute_query, execute_query_single, sanitize_props
+from icarus.services.public_guard import (
+    enforce_entity_lookup_enabled,
+    enforce_entity_lookup_policy,
+    enforce_person_access_policy,
+    has_person_labels,
+    infer_exposure_tier,
+    sanitize_public_properties,
+    should_hide_person_entities,
+)
 from icarus.services.score_service import compute_exposure
 
 router = APIRouter(prefix="/api/v1/entity", tags=["entity"])
@@ -70,9 +79,10 @@ def _node_to_entity(
         type=entity_type,
         entity_label=entity_label,
         identity_quality=identity_quality,
-        properties=sanitize_props(props),
+        properties=sanitize_public_properties(sanitize_props(props)),
         sources=sources,
         is_pep=_is_pep(props),
+        exposure_tier=infer_exposure_tier(labels),
     )
 
 
@@ -91,6 +101,7 @@ async def get_entity(
     cpf_or_cnpj: str,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> EntityResponse:
+    enforce_entity_lookup_policy(cpf_or_cnpj)
     identifier = _clean_identifier(cpf_or_cnpj)
 
     if not CPF_PATTERN.match(identifier) and not CNPJ_PATTERN.match(identifier):
@@ -108,6 +119,7 @@ async def get_entity(
     )
     if record is None:
         raise HTTPException(status_code=404, detail="Entity not found")
+    enforce_person_access_policy(record["entity_labels"])
 
     return _node_to_entity(
         record["e"], record["entity_labels"], record["entity_id"]
@@ -119,11 +131,13 @@ async def get_entity_by_element_id(
     element_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> EntityResponse:
+    enforce_entity_lookup_enabled()
     record = await execute_query_single(
         session, "entity_by_element_id", {"element_id": element_id}
     )
     if record is None:
         raise HTTPException(status_code=404, detail="Entity not found")
+    enforce_person_access_policy(record["entity_labels"])
 
     return _node_to_entity(
         record["e"], record["entity_labels"], element_id
@@ -201,6 +215,7 @@ async def get_connections(
         raise HTTPException(status_code=404, detail="Entity not found or has no connections")
 
     first = records[0]
+    enforce_person_access_policy(first["source_labels"])
     entity = _node_to_entity(
         first["e"], first["source_labels"], first["source_id"]
     )
@@ -214,6 +229,8 @@ async def get_connections(
     for record in records:
         target_labels = record["target_labels"]
         target_type = target_labels[0].lower() if target_labels else "unknown"
+        if should_hide_person_entities() and has_person_labels(target_labels):
+            continue
 
         if type_filter and target_type not in type_filter:
             continue
@@ -231,9 +248,10 @@ async def get_connections(
             source_id=record["source_id"],
             target_id=record["target_id"],
             relationship_type=record["rel_type"],
-            properties=sanitize_props(rel_props),
+            properties=sanitize_public_properties(sanitize_props(rel_props)),
             confidence=confidence,
             sources=rel_sources,
+            exposure_tier=infer_exposure_tier(target_labels),
         ))
 
         target_id = record["target_id"]

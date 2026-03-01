@@ -20,9 +20,17 @@ from icarus.models.investigation import (
 from icarus.services import investigation_service as svc
 from icarus.services.neo4j_service import execute_query_single
 from icarus.services.pdf_service import render_investigation_pdf
+from icarus.services.public_guard import ensure_investigations_enabled
 
-router = APIRouter(prefix="/api/v1/investigations", tags=["investigations"])
-shared_router = APIRouter(tags=["shared"])
+router = APIRouter(
+    prefix="/api/v1/investigations",
+    tags=["investigations"],
+    dependencies=[Depends(ensure_investigations_enabled)],
+)
+shared_router = APIRouter(
+    tags=["shared"],
+    dependencies=[Depends(ensure_investigations_enabled)],
+)
 
 
 @router.post(

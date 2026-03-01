@@ -11,6 +11,7 @@ class GraphNode(BaseModel):
     properties: dict[str, str | float | int | bool | None]
     sources: list[SourceAttribution]
     is_pep: bool = False
+    exposure_tier: str = "public_safe"
 
 
 class GraphEdge(BaseModel):
@@ -21,6 +22,7 @@ class GraphEdge(BaseModel):
     properties: dict[str, str | float | int | bool | None]
     confidence: float = 1.0
     sources: list[SourceAttribution]
+    exposure_tier: str = "public_safe"
 
 
 class GraphResponse(BaseModel):

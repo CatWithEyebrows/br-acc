@@ -9,6 +9,12 @@ from icarus.middleware.rate_limit import limiter
 from icarus.models.entity import SourceAttribution
 from icarus.models.search import SearchResponse, SearchResult
 from icarus.services.neo4j_service import execute_query, sanitize_props
+from icarus.services.public_guard import (
+    has_person_labels,
+    infer_exposure_tier,
+    sanitize_public_properties,
+    should_hide_person_entities,
+)
 
 router = APIRouter(prefix="/api/v1", tags=["search"])
 
@@ -56,6 +62,8 @@ async def search_entities(
         node = record["node"]
         props = dict(node)
         labels = record["node_labels"]
+        if should_hide_person_entities() and has_person_labels(labels):
+            continue
         source_val = props.pop("source", None)
         sources: list[SourceAttribution] = []
         if isinstance(source_val, str):
@@ -73,8 +81,9 @@ async def search_entities(
             name=_extract_name(node, labels),
             score=record["score"],
             document=document,
-            properties=sanitize_props(props),
+            properties=sanitize_public_properties(sanitize_props(props)),
             sources=sources,
+            exposure_tier=infer_exposure_tier(labels),
         ))
 
     return SearchResponse(

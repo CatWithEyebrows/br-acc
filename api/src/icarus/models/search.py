@@ -11,6 +11,7 @@ class SearchResult(BaseModel):
     document: str | None = None
     properties: dict[str, str | float | int | bool | None]
     sources: list[SourceAttribution]
+    exposure_tier: str = "public_safe"
 
 
 class SearchResponse(BaseModel):

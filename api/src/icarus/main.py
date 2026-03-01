@@ -21,6 +21,7 @@ from icarus.routers import (
     investigation,
     meta,
     patterns,
+    public,
     search,
 )
 from icarus.services.neo4j_service import ensure_schema
@@ -64,6 +65,7 @@ app.add_middleware(SecurityHeadersMiddleware, app_env=settings.app_env)
 app.add_middleware(CPFMaskingMiddleware)
 
 app.include_router(meta.router)
+app.include_router(public.router)
 app.include_router(auth.router)
 app.include_router(entity.router)
 app.include_router(search.router)
